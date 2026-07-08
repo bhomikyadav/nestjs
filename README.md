@@ -99,6 +99,21 @@ nest g controller users
 
 This project shows that pattern through the `auth` and `users` folders.
 
+### What the current services are doing
+
+In this project, the services already contain important logic:
+
+- `AppService.getHello()` returns the string `Hello World!` for the basic app route.
+- `AuthService.create()` handles user registration.
+- Before saving a user, it checks whether the email already exists.
+- It uses `bcrypt` to hash the password before storing it in MongoDB.
+- If the user is saved successfully, it creates a JWT token using `JWT_SECRET_KEY`.
+- The token payload contains the user's `guid` and `email` and expires in 5 minutes.
+- If the email already exists, the service throws a `ConflictException`.
+- If the save operation fails, it throws an `InternalServerErrorException`.
+
+The controller exposes this flow through `POST /auth/register`.
+
 ---
 
 ## 6. Create DTOs (Data Transfer Objects)
@@ -126,6 +141,7 @@ This project is configured to use MongoDB.
 2. Add `ConfigModule` for environment variable support
 3. Use `MongooseModule.forRootAsync()` inside `src/app.module.ts`
 4. Define a schema in `src/users/schemas/user.schema.ts`
+5. Inject the model into the auth service using `@InjectModel(User.name)`
 
 ### Environment variable example
 Create a `.env` file:
@@ -133,9 +149,13 @@ Create a `.env` file:
 ```env
 MONGODB_URI=mongodb://localhost:27017/nest-tutorial
 PORT=3000
+JWT_SECRET_KEY=your_secret_key_here
 ```
 
 This makes your app flexible and safe for configuration.
+
+### Important database note
+The auth flow uses MongoDB to save user records and the application expects the database connection to be available before authentication requests are processed.
 
 ---
 
@@ -204,6 +224,8 @@ By studying this project, you will learn:
 - how to create routes and logic
 - how to organize feature-based folders
 - how to connect to MongoDB using Mongoose
+- how to hash passwords and register users securely
+- how to generate and use JWT tokens
 - how to run and test a NestJS app
 
 ---

@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import crypto from 'crypto';
 
 @Schema({
   timestamps: true,
@@ -20,6 +21,13 @@ export class User {
     required: true,
   })
   password!: string;
+
+  @Prop({
+    default: function genUUID() {
+      return crypto.randomUUID();
+    },
+  })
+  guid!: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
