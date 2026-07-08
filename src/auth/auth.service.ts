@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -10,12 +11,14 @@ import { User } from 'src/users/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import bcrypt from 'bcrypt';
 
-import jwt from 'jsonwebtoken';
+import { JwtService } from '@nestjs/jwt';
+import { LoginAuthDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name)
     private readonly UserModel: Model<User>,
+    protected readonly jwt: JwtService,
   ) {}
   async create(createAuthDto: CreateAuthDto) {
     // Check if User is already present
@@ -49,15 +52,41 @@ export class AuthService {
       guid: saveUser.guid,
       email: saveUser.email,
     };
-    const secretKey = process.env.JWT_SECRET_KEY as string;
     //create Token
-    const token = await jwt.sign(payload, secretKey, { expiresIn: '5m' });
+    const token = await this.jwt.signAsync(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+    });
 
     return {
       token,
     };
   }
 
+  async login(loginAuthDto: LoginAuthDto) {
+    const findUser = await this.UserModel.findOne({
+      email: loginAuthDto.email,
+    });
+    if (!findUser)
+      throw new UnauthorizedException('Email or password is Wrong');
+
+    const isCorrectPass = await bcrypt.compare(
+      loginAuthDto.password,
+      findUser.password,
+    );
+    if (!isCorrectPass)
+      throw new UnauthorizedException('Email or password is Wrong');
+
+    const payload = {
+      guid: findUser.guid,
+      email: findUser.email,
+    };
+    //create Token
+    const token = await this.jwt.signAsync(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+    });
+
+    return { token };
+  }
   findAll() {
     return `This action returns all auth`;
   }

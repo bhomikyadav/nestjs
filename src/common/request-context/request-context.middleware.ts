@@ -7,8 +7,6 @@ import { RequestContextService } from './request-context.service';
 export class RequestContextMiddleware implements NestMiddleware {
   constructor(protected readonly requestContext: RequestContextService) {}
   use(req: Request, res: Response, next: NextFunction) {
-
-console.log('🚀 request-context.middleware.ts:10 -> ');
     
     const requestId: string = randomUUID();
     this.requestContext.run(() => {

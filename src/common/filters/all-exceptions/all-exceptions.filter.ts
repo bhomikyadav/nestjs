@@ -38,7 +38,7 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
       }
     }
     let requestId = this.requestContextService.get('requestId');
-
+    console.log('Error: ', exception);
     return res.status(statusCode).json({
       success: statusCode === HttpStatus.OK,
       statusCode: statusCode,

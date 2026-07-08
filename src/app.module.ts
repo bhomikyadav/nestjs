@@ -8,6 +8,8 @@ import { UsersModule } from './users/users.module';
 import { RequestContextService } from './common/request-context/request-context.service';
 import { CommonModule } from './common/common.module';
 import { RequestContextMiddleware } from './common/request-context/request-context.middleware';
+import { APP_GUARD } from '@nestjs/core';
+import { RateLimiterGuard } from './common/guard/rate-limiter/rate-limiter.guard';
 
 @Module({
   imports: [
@@ -26,7 +28,13 @@ import { RequestContextMiddleware } from './common/request-context/request-conte
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: RateLimiterGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
